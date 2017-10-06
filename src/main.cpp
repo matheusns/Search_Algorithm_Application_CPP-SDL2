@@ -13,11 +13,15 @@
 
 int main(int argc, char** argv)
 {
-	const uint16 gridHNodes = 10;
-	const uint16 gridVNodes = 10;
-	const uint16 tileSize = 64;
+	// Grid Height
+	const uint16 gridHNodes = 42;
+	// Grid Width
+	const uint16 gridWNodes = 42;
+	// Square size
+	const uint16 tileSize = 17;
+	// Window size
 	const uint16 windowWidth = gridHNodes * tileSize;
-	const uint16 windowHeight = gridVNodes * tileSize;
+	const uint16 windowHeight = gridWNodes * tileSize;
 
 	// Start and end nodes for pathfinding
 	NavigationNode* startNode = nullptr;
@@ -30,28 +34,28 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	SDL_Window *window = SDL_CreateWindow("Pathfinding tutorial", 100, 100, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
+	SDL_Window *window = SDL_CreateWindow("Pathfinding tutorial", 0, 0, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
 	if (!window)
 	{
 		SDL_ShowSimpleMessageBox(0, "Fatal Error creating window", SDL_GetError(), 0);
 		return 1;
 	}
 
-	IMG_Init(IMG_INIT_JPG);
+	// IMG_Init(IMG_INIT_JPG);
 
+	// Renderization init
 	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (!renderer)
 	{
 		SDL_ShowSimpleMessageBox(0, "Fatal Error creating renderer", SDL_GetError(), 0);
 		return 1;
 	}
-
 	// Load the all images
-	const char *assetFile = "icons/tile.bmp", *endFile="icons/end.png", *volcanoFile="icons/volcano.png", *mountainFile = "icons/mountain.png";
-	const char *grassFile = "icons/grass.jpg", *cursorFile="icons/cursor.png", *waterFile="icons/water.png", *startFile="icons/start.png";
+	const char *endFile="icons/end.png", *volcanoFile="icons/volcano.png", *mountainFile = "icons/mountain.png";
+	const char *grassFile = "icons/grass.jpg", *cursorFile="icons/cursor.png", *waterFile="icons/water.jpg", *startFile="icons/start.png";
 	const char *caveFile = "icons/cave.png";
 
-	SDL_Surface* bitmap = IMG_Load(assetFile);
+	// Loads all surfaces
 	SDL_Surface* volcano = IMG_Load(volcanoFile);
 	SDL_Surface* mountain = IMG_Load(mountainFile);
 	SDL_Surface* cave = IMG_Load(caveFile);
@@ -62,7 +66,6 @@ int main(int argc, char** argv)
 	SDL_Surface* endPtr = IMG_Load(endFile);
 
 	// Upload the images to the GPU
-	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bitmap);
 	SDL_Texture* grassTexture = SDL_CreateTextureFromSurface(renderer, grass);
 	SDL_Texture* waterTexture = SDL_CreateTextureFromSurface(renderer, water);
 	SDL_Texture* cursorTexture = SDL_CreateTextureFromSurface(renderer, cursorRaw);
@@ -71,8 +74,10 @@ int main(int argc, char** argv)
 	SDL_Texture* volcanoTexture = SDL_CreateTextureFromSurface(renderer, volcano);
 	SDL_Texture* mountainTexture = SDL_CreateTextureFromSurface(renderer, mountain);
 	SDL_Texture* caveTexture = SDL_CreateTextureFromSurface(renderer, cave);
-	
-	SDL_FreeSurface(bitmap);
+
+	// Insert Try Catch
+
+	// Free all surfaces
 	SDL_FreeSurface(grass);
 	SDL_FreeSurface(water);
 	SDL_FreeSurface(cursorRaw);
@@ -82,11 +87,7 @@ int main(int argc, char** argv)
 	SDL_FreeSurface(startPtr);
 	SDL_FreeSurface(mountain);
 
-	/* if (!texture)
-	{
-		SDL_ShowSimpleMessageBox(0, "Fatal Error creating texture", SDL_GetError(), 0);
-		return 5;
-	} */
+	// Insert Try Catch
 
 	// Sprite
 	SDL_Rect sprite;
@@ -95,13 +96,13 @@ int main(int argc, char** argv)
 	sprite.w = sprite.h = 128;
 
 	// Initialize the navigation grid
-	NavigationGrid *grid = new NavigationGrid(gridHNodes, gridVNodes);
+	NavigationGrid *grid = new NavigationGrid(gridHNodes, gridWNodes);
 
 	// tracks the cursor position
 	SDL_Rect cursor = {};
 	cursor.w = cursor.h = tileSize;
 
-	uint32 numGridNodes = gridHNodes * gridVNodes;
+	uint32 numGridNodes = gridHNodes * gridWNodes;
 
 	PathFinder pathFinder(numGridNodes);
 	Path path = {};
@@ -109,7 +110,7 @@ int main(int argc, char** argv)
 	// Render loop
 	bool running = true;
 
-	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+	SDL_SetRenderDrawColor(renderer, 255, 0, 20, 255);
 	while (running)
 	{
 		SDL_Event event;
@@ -125,22 +126,22 @@ int main(int argc, char** argv)
 				switch (event.key.keysym.scancode)
 				{
 				case SDL_SCANCODE_UP:
-				case SDL_SCANCODE_W:
+				// case SDL_SCANCODE_W:
 					cursor.y = MAX(0, cursor.y - tileSize);
 					break;
 
 				case SDL_SCANCODE_LEFT:
-				case SDL_SCANCODE_A:
+				// case SDL_SCANCODE_A:
 					cursor.x = MAX(0, cursor.x - tileSize);
 					break;
 
 				case SDL_SCANCODE_DOWN:
-				case SDL_SCANCODE_S:
+				// case SDL_SCANCODE_S:
 					cursor.y = MIN(windowHeight - tileSize, cursor.y + tileSize);
 					break;
 
 				case SDL_SCANCODE_RIGHT:
-				case SDL_SCANCODE_D:
+				// case SDL_SCANCODE_D:
 					cursor.x = MIN(windowWidth - tileSize, cursor.x + tileSize);
 					break;
 
@@ -148,7 +149,72 @@ int main(int argc, char** argv)
 					running = false;
 					break;
 
-					// Toggle Walkable/Unwalkable
+				case SDL_SCANCODE_W:
+				{
+					// Access the node that corresponds to the current node 
+					NavigationNode* node = grid->getNodeAt(cursor.x / tileSize, cursor.y / tileSize);
+					// if the start or end nodes became unwalkable, reset it
+					node->item = 'W';
+					if (node == startNode)
+						startNode = nullptr;
+					if (node == endNode)
+						endNode = nullptr;
+					path.status = Path::UNPROCCESSED;
+				}break;
+
+				case SDL_SCANCODE_C:
+				{
+					// Access the node that corresponds to the current node 
+					NavigationNode* node = grid->getNodeAt(cursor.x / tileSize, cursor.y / tileSize);
+					// if the start or end nodes became unwalkable, reset it
+					node->item = 'C';
+					if (node == startNode)
+						startNode = nullptr;
+					if (node == endNode)
+						endNode = nullptr;
+					path.status = Path::UNPROCCESSED;
+				}break;
+
+				case SDL_SCANCODE_V:
+				{
+					// Access the node that corresponds to the current node 
+					NavigationNode* node = grid->getNodeAt(cursor.x / tileSize, cursor.y / tileSize);
+					// if the start or end nodes became unwalkable, reset it
+					node->item = 'V';
+					if (node == startNode)
+						startNode = nullptr;
+					if (node == endNode)
+						endNode = nullptr;
+					path.status = Path::UNPROCCESSED;
+				}break;
+
+				case SDL_SCANCODE_M:
+				{
+					// Access the node that corresponds to the current node 
+					NavigationNode* node = grid->getNodeAt(cursor.x / tileSize, cursor.y / tileSize);
+					// if the start or end nodes became unwalkable, reset it
+					node->item = 'M';
+					if (node == startNode)
+						startNode = nullptr;
+					if (node == endNode)
+						endNode = nullptr;
+					path.status = Path::UNPROCCESSED;
+				}break;
+
+				case SDL_SCANCODE_G:
+				{
+					// Access the node that corresponds to the current node 
+					NavigationNode* node = grid->getNodeAt(cursor.x / tileSize, cursor.y / tileSize);
+					// if the start or end nodes became unwalkable, reset it
+					node->item = 'G';
+					if (node == startNode)
+						startNode = nullptr;
+					if (node == endNode)
+						endNode = nullptr;
+					path.status = Path::UNPROCCESSED;
+				}break;
+ 	
+
 				case SDL_SCANCODE_1:
 				{
 					NavigationNode* node = grid->getNodeAt(cursor.x / tileSize, cursor.y / tileSize);
@@ -200,18 +266,29 @@ int main(int argc, char** argv)
 		for (uint32 i = 0; i < numGridNodes; i++)
 		{
 			// SDL_Rect *r = (node->blocked ? &waterSprite : &grassSprite);
-			SDL_RenderCopy(renderer,
-				grassTexture,
-				&sprite,
-				&dstRect);
-
+			SDL_RenderCopy(renderer, grassTexture, &sprite, &dstRect);
 			// Render Start and End nodes
 			if (node == startNode)
 				SDL_RenderCopy(renderer, startTexture, &sprite, &dstRect);
 			else if (node == endNode)
-				// SDL_RenderCopyEx(renderer, texture, &sprite, &dstRect, 0, 0, SDL_FLIP_HORIZONTAL);
+			// SDL_RenderCopyEx(renderer, texture, &sprite, &dstRect, 0, 0, SDL_FLIP_HORIZONTAL);
 				SDL_RenderCopy(renderer, endTexture, &sprite, &dstRect);
-
+			// Render the Grid's items
+			else if (node->item == 'W')
+			// SDL_RenderCopyEx(renderer, texture, &sprite, &dstRect, 0, 0, SDL_FLIP_HORIZONTAL);
+				SDL_RenderCopy(renderer, waterTexture, &sprite, &dstRect);
+			else if (node->item == 'C')
+			// SDL_RenderCopyEx(renderer, texture, &sprite, &dstRect, 0, 0, SDL_FLIP_HORIZONTAL);
+				SDL_RenderCopy(renderer, caveTexture, &sprite, &dstRect);
+			else if (node->item == 'V')
+			// SDL_RenderCopyEx(renderer, texture, &sprite, &dstRect, 0, 0, SDL_FLIP_HORIZONTAL);
+				SDL_RenderCopy(renderer, volcanoTexture, &sprite, &dstRect);	
+			else if (node->item == 'M')
+			// SDL_RenderCopyEx(renderer, texture, &sprite, &dstRect, 0, 0, SDL_FLIP_HORIZONTAL);
+				SDL_RenderCopy(renderer, mountainTexture, &sprite, &dstRect);	
+			else if (node->item == 'M')
+			// SDL_RenderCopyEx(renderer, texture, &sprite, &dstRect, 0, 0, SDL_FLIP_HORIZONTAL);
+				SDL_RenderCopy(renderer, mountainTexture, &sprite, &dstRect);	
 			// Adjust line and column coords for the node
 			dstRect.x += tileSize;
 			if (dstRect.x >= windowWidth)
@@ -249,7 +326,7 @@ int main(int argc, char** argv)
 		// Flush
 		SDL_RenderPresent(renderer);
 	}
-	IMG_Quit();
+	// IMG_Quit();
 	SDL_Quit();
 	return 0;
 #undef SDLFATALERROR

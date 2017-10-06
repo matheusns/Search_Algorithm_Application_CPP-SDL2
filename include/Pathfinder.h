@@ -23,6 +23,7 @@ class PathFinder
 {
 	std::vector<NavigationNode*> openList;
 	std::vector<NavigationNode*> closedList;
+	
 	inline uint16 calculateHCost(NavigationNode *current, NavigationNode *goal) const
 	{
 		uint16 absX = ABS(current->x - goal->x);
@@ -60,7 +61,7 @@ public:
 
 		while (path.status == Path::UNPROCCESSED)
 		{
-			// Se a lista ABERTA estiver vazia, não pudemos encontrar um caminho.
+			// Se a lista ABERTA estiver vazia, nï¿½o pudemos encontrar um caminho.
 			if (openList.size() == 0){ path.status = Path::IMPOSSIBLE; break; }
 
 			// Ordena a lista aberta pelo menor FCost
@@ -70,7 +71,7 @@ public:
 					return a->FCost < b->FCost; 
 			});
 
-			// Pega o nó com menor FCost da lista ABERTA
+			// Pega o nï¿½ com menor FCost da lista ABERTA
 			NavigationNode* current = openList[0];
 
 			// Remove o no atual da lista ABERTA
@@ -79,13 +80,13 @@ public:
 			// Adiciona na lista FECHADA
 			closedList.push_back(current);
 
-			// Se este for o nó destino, terminamos
+			// Se este for o nï¿½ destino, terminamos
 			if (current == end){ path.status = Path::FOUND; break; }
 
 			NavigationNode* blockedNode[8] = {};
 			uint16 blockedNodeCount = 0;
 
-			// Processa os nós filhos do nó atual
+			// Processa os nï¿½s filhos do nï¿½ atual
 			for (uint16 neighborIndex = 0; neighborIndex < current->neighborCount; neighborIndex++)
 			{
 
